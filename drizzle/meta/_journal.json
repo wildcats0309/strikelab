@@ -1,5 +1,20 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787095891371,
+      "tag": "0000_amusing_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787095902871,
+      "tag": "0001_dapper_wolfsbane",
+      "breakpoints": true
+    }
+  ]
 }

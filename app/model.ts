@@ -26,16 +26,17 @@ function poissonCdf(k: number, lambda: number) {
   return sum;
 }
 
-export function calculateModel(input: { tbf:number; strikeouts:number; bfPerIp:number; projectedIp:number; opponent:string; hand:"L"|"R"; line:number; overOdds:number; underOdds:number; context:number }) {
+export type CustomOpponent = {team:string;season_pa:number;season_so:number;vs_l_pa:number;vs_l_so:number;vs_r_pa:number;vs_r_so:number;last_30_pa:number;last_30_so:number};
+export function calculateModel(input: { tbf:number; strikeouts:number; bfPerIp:number; projectedIp:number; opponent:string; hand:"L"|"R"; line:number; overOdds:number; underOdds:number; context:number; profile?:CustomOpponent }) {
   const a = assumptions;
   const r = rows.find(row => row[0] === input.opponent) ?? rows[0];
   const rawPitcherK = input.tbf ? input.strikeouts / input.tbf : 0;
   const adjustedPitcherK = (input.tbf * rawPitcherK + a.pitcherPriorBF * a.leagueK) / (input.tbf + a.pitcherPriorBF);
-  const seasonK = r[3];
-  const splitPA = input.hand === "L" ? r[4] : r[7];
-  const splitK = input.hand === "L" ? r[6] : r[9];
+  const seasonK = input.profile ? input.profile.season_so/input.profile.season_pa : r[3];
+  const splitPA = input.profile ? (input.hand === "L" ? input.profile.vs_l_pa : input.profile.vs_r_pa) : (input.hand === "L" ? r[4] : r[7]);
+  const splitK = input.profile ? (input.hand === "L" ? input.profile.vs_l_so/input.profile.vs_l_pa : input.profile.vs_r_so/input.profile.vs_r_pa) : (input.hand === "L" ? r[6] : r[9]);
   const regressedSplitK = (splitPA * splitK + a.splitPriorPA * seasonK) / (splitPA + a.splitPriorPA);
-  const last30PA = r[10], last30K = r[12];
+  const last30PA = input.profile?.last_30_pa ?? r[10], last30K = input.profile ? input.profile.last_30_so/input.profile.last_30_pa : r[12];
   const regressedLast30K = (last30PA * last30K + a.last30PriorPA * seasonK) / (last30PA + a.last30PriorPA);
   const opponentProfileK = a.seasonWeight * seasonK + a.splitWeight * regressedSplitK + a.last30Weight * regressedLast30K;
   const opponentFactor = Math.min(a.factorCap, Math.max(a.factorFloor, opponentProfileK / a.leagueK));

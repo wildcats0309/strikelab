@@ -1,0 +1,1 @@
+CREATE INDEX `idx_games_date` ON `games` (`game_date`);
